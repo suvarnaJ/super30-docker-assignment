@@ -1,0 +1,53 @@
+
+services:
+
+  frontend:
+    build: ./frontend
+    container_name: super30-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - super30-network
+
+  backend:
+    build: ./backend
+    container_name: super30-backend
+    ports:
+      - "8020:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - super30-network
+
+  db:
+    image: postgres:16
+    container_name: super30-db
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - student_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - super30-network
+
+volumes:
+  student_data:
+
+networks:
+  super30-network:
+    driver: bridge

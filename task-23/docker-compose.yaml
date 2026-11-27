@@ -1,0 +1,91 @@
+
+services:
+
+  # FRONTEND SERVICE
+
+  frontend:
+    build: ./frontend
+
+    container_name: super30-student-frontend
+
+    ports:
+      - "8083:80"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    networks:
+      - student-network
+
+
+  # FASTAPI BACKEND SERVICE
+
+  backend:
+    build: ./backend
+
+    container_name: super30-student-backend
+
+    ports:
+      - "8023:8000"
+
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    networks:
+      - student-network
+
+
+  # POSTGRESQL DATABASE SERVICE
+
+  db:
+    image: postgres:16
+
+    container_name: super30-student-db
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - student_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - student-network
+
+
+# PERSISTENT VOLUME
+
+volumes:
+  student_data:
+
+
+# CUSTOM DOCKER NETWORK
+
+networks:
+  student-network:
+    driver: bridge

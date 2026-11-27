@@ -1,0 +1,47 @@
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: super30-postgres-19
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - super30-network
+
+  backend:
+    build: ./backend
+    container_name: super30-api-19
+
+    ports:
+      - "8019:8000"
+
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - super30-network
+
+volumes:
+  postgres_data:
+
+networks:
+  super30-network:
+    driver: bridge

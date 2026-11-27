@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Super30 Student Management</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 40px;
+        }
+        .container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        li {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Super30 Student Management</h1>
+    <p>Frontend → FastAPI → PostgreSQL</p>
+
+    <button onclick="loadStudents()">Load Students</button>
+
+    <ul id="students"></ul>
+</div>
+
+<script>
+async function loadStudents() {
+    const response = await fetch("http://localhost:8020/students");
+    const students = await response.json();
+
+    const list = document.getElementById("students");
+    list.innerHTML = "";
+
+    students.forEach(student => {
+        const item = document.createElement("li");
+        item.textContent = `${student.name} - ${student.email}`;
+        list.appendChild(item);
+    });
+}
+</script>
+</body>
+</html>
